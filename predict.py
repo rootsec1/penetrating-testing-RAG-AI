@@ -7,7 +7,7 @@ import nltk
 import streamlit as st
 import replicate
 
-# nltk.download('stopwords')
+nltk.download('stopwords')
 STOP_WORDS_SET = set(stopwords.words("english"))
 
 
@@ -25,6 +25,8 @@ def get_response_from_model(prompt: str) -> str:
         "min_new_tokens": -1
     }
 
+    print(f"PROMPT: {prompt}")
+    print("Streaming response from model...")
     response_str = ""
     iterator = replicate.stream("meta/llama-2-70b-chat", input=input_dict)
     for event in iterator:
@@ -57,14 +59,14 @@ def generate_prompt_with_rag(query: str) -> str:
 
 
 def main():
-    st.title("Wireshark Assistant")
+    st.title("Cybersecurity Co-Pilot")
     should_use_rag = st.select_slider(
         "Use RAG?:",
         ["No", "Yes"]
     )
     if "messages" not in st.session_state:
         st.session_state.messages = [
-            {"role": "assistant", "content": "How can I help you with Wireshark?"}
+            {"role": "assistant", "content": "What can I help you with?"}
         ]
 
     for msg in st.session_state.messages:
@@ -77,6 +79,7 @@ def main():
         if should_use_rag == "Yes":
             prompt = generate_prompt_with_rag(prompt)
 
+        prompt = "[INST]\n" + prompt + "\n[/INST]"
         model_response = get_response_from_model(prompt)
         print(model_response)
         st.chat_message("assistant").markdown(model_response)
